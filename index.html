@@ -1,36 +1,19 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8" />
-  <title>Running client.jar with CheerpJ 4.x</title>
-  <!-- 1. Load the CheerpJ 4.x loader from the LeaningTech CDN -->
   <script src="https://cjrtnc.leaningtech.com/4.0/loader.js"></script>
   <script>
-    async function startJavaApp() {
-      // 2. Initialize the CheerpJ runtime (loads the .wasm, sets up the FS, etc.)
-      await cheerpjInit();  // :contentReference[oaicite:0]{index=0}
-
-      // 3. (Optional) If your app has a GUI, reserve a canvas of the right size
-      //    You can tweak width/height as needed.
-      cheerpjCreateDisplay(800, 600);  // :contentReference[oaicite:1]{index=1}
-
-      // 4. Invoke your JAR’s main() method:
-      //    Replace 'com.example.Main' with your actual main-class name,
-      //    and ensure 'client.jar' is in the same folder.
-      const exitCode = await cheerpjRunMain(
-        'com.example.Main',
-        'client.jar'
-      );  // :contentReference[oaicite:2]{index=2}
-
-      console.log(`Java application exited with code ${exitCode}`);
+    async function testWasm() {
+      console.log('Initializing…');
+      try {
+        await cheerpjInit();
+        console.log('✅ WASM OK');
+      } catch (e) {
+        console.error('❌ Initialization failed:', e);
+      }
     }
-
-    // Kick off once the page’s DOM is fully loaded
-    window.addEventListener('load', startJavaApp);
+    window.addEventListener('load', testWasm);
   </script>
 </head>
-<body>
-  <h1>Running client.jar via CheerpJ 4.x</h1>
-  <p>Open your browser’s developer console to see standard Java output, and watch the canvas above for any GUI components.</p>
-</body>
+<body>Check your console.</body>
 </html>
