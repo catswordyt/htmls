@@ -6,18 +6,45 @@
   <script src="https://cjrtnc.leaningtech.com/4.0/loader.js"></script>
   <script>
     async function startJavaApp() {
-      await cheerpjInit();
-      // If your app uses a GUI, uncomment and adjust the canvas size:
-      // cheerpjCreateDisplay(800, 600);
+      try {
+        console.log('⏳ Initializing CheerpJ…');
+        await cheerpjInit();
+        console.log('✅ CheerpJ runtime ready');
 
-      // Let CheerpJ read the manifest and run the correct main class:
-      const exitCode = await cheerpjRunJar('client.jar');
-      console.log(`Java application exited with code ${exitCode}`);
+        // 1) Double‑check we can fetch the JAR
+        console.log('⏳ Fetching client.jar…');
+        const response = await fetch('client.jar');
+        console.log(
+          '📦 client.jar fetch',
+          'status=', response.status,
+          'content-type=', response.headers.get('content-type'),
+          'content-length=', response.headers.get('content-length')
+        );
+        if (!response.ok) {
+          throw new Error(`Failed to fetch client.jar: HTTP ${response.status}`);
+        }
+
+        // 2) If your app has a GUI, uncomment/adjust this:
+        // cheerpjCreateDisplay(800, 600);
+
+        // 3) Let CheerpJ run the JAR (manifest Main‑Class or explicit)
+        console.log('⏳ Launching Java application…');
+        const exitCode = await cheerpjRunJar('client.jar');
+        console.log(`✅ Java application exited with code ${exitCode}`);
+      } catch (err) {
+        console.error('❌ Error during startup:', err);
+      }
     }
 
     window.addEventListener('load', startJavaApp);
   </script>
 </head>
+<body>
+  <h1>Running client.jar via CheerpJ</h1>
+  <p>Check your browser’s developer console for detailed logs.</p>
+</body>
+</html>
+
 <body>
   <h1>Running client.jar via CheerpJ</h1>
   <p>Open your browser console to watch the app start.</p>
