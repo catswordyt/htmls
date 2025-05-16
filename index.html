@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Host client.jar with CheerpJ</title>
+  <!-- 1. Include the CheerpJ loader from LeaningTech CDN -->
+  <script src="https://cjrtnc.leaningtech.com/4.0/loader.js"></script>
+  <script>
+    window.onload = function() {
+      // Optional: enable Java debugging in console
+      CheerpJLoader.debug = true;
+
+      // 2. Preload your JAR (will fetch the loader-wasm bundle automatically)
+      CheerpJLoader.preloadJar('client.jar').then(function() {
+        // 3. Run the JAR's Main class
+        //    Replace 'com.example.Main' with your actual main-class name
+        CheerpJLoader.runMain('com.example.Main', []);
+      });
+    };
+  </script>
+</head>
+<body>
+  <h1>Running client.jar via CheerpJ</h1>
+  <p>Open your browser’s devtools console to see the Java output.</p>
+</body>
+</html>
