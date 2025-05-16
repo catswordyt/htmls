@@ -1,16 +1,36 @@
-<script src="https://cjrtnc.leaningtech.com/4.0/loader.js"></script>
-<script>
-  async function startJavaApp() {
-    // 1. Initialize the CheerpJ runtime
-    await cheerpjInit();  // :contentReference[oaicite:0]{index=0}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Running client.jar with CheerpJ 4.x</title>
+  <!-- 1. Load the CheerpJ 4.x loader from the LeaningTech CDN -->
+  <script src="https://cjrtnc.leaningtech.com/4.0/loader.js"></script>
+  <script>
+    async function startJavaApp() {
+      // 2. Initialize the CheerpJ runtime (loads the .wasm, sets up the FS, etc.)
+      await cheerpjInit();  // :contentReference[oaicite:0]{index=0}
 
-    // 2. If you have a GUI, reserve a canvas (optional)
-    cheerpjCreateDisplay(800, 600);  // :contentReference[oaicite:1]{index=1}
+      // 3. (Optional) If your app has a GUI, reserve a canvas of the right size
+      //    You can tweak width/height as needed.
+      cheerpjCreateDisplay(800, 600);  // :contentReference[oaicite:1]{index=1}
 
-    // 3. Load your client.jar and invoke its main class
-    //    Replace 'com.example.Main' with your real main-class package path
-    await cheerpjRunMain('com.example.Main', 'client.jar');  // :contentReference[oaicite:2]{index=2}
-  }
+      // 4. Invoke your JAR’s main() method:
+      //    Replace 'com.example.Main' with your actual main-class name,
+      //    and ensure 'client.jar' is in the same folder.
+      const exitCode = await cheerpjRunMain(
+        'com.example.Main',
+        'client.jar'
+      );  // :contentReference[oaicite:2]{index=2}
 
-  window.addEventListener('load', startJavaApp);
-</script>
+      console.log(`Java application exited with code ${exitCode}`);
+    }
+
+    // Kick off once the page’s DOM is fully loaded
+    window.addEventListener('load', startJavaApp);
+  </script>
+</head>
+<body>
+  <h1>Running client.jar via CheerpJ 4.x</h1>
+  <p>Open your browser’s developer console to see standard Java output, and watch the canvas above for any GUI components.</p>
+</body>
+</html>
