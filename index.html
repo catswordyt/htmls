@@ -1,19 +1,25 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+  <meta charset="UTF-8" />
+  <title>Running client.jar with CheerpJ</title>
   <script src="https://cjrtnc.leaningtech.com/4.0/loader.js"></script>
   <script>
-    async function testWasm() {
-      console.log('Initializing…');
-      try {
-        await cheerpjInit();
-        console.log('✅ WASM OK');
-      } catch (e) {
-        console.error('❌ Initialization failed:', e);
-      }
+    async function startJavaApp() {
+      await cheerpjInit();
+      // If your app uses a GUI, uncomment and adjust the canvas size:
+      // cheerpjCreateDisplay(800, 600);
+
+      // Let CheerpJ read the manifest and run the correct main class:
+      const exitCode = await cheerpjRunJar('client.jar');
+      console.log(`Java application exited with code ${exitCode}`);
     }
-    window.addEventListener('load', testWasm);
+
+    window.addEventListener('load', startJavaApp);
   </script>
 </head>
-<body>Check your console.</body>
+<body>
+  <h1>Running client.jar via CheerpJ</h1>
+  <p>Open your browser console to watch the app start.</p>
+</body>
 </html>
