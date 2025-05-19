@@ -70,3 +70,85 @@
   <p>Open your browser’s developer console to see manifest verification, download progress, and any errors.</p>
 </body>
 </html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>CheerpJ + Minecraft 1.21.5</title>
+  <!-- CheerpJ 4.x loader -->
+  <script src="https://cjrtnc.leaningtech.com/4.0/loader.js"></script>
+  <script>
+    async function startMinecraft() {
+      // 0) Prevent running under file://
+      if (location.protocol === 'file:') {
+        document.body.innerHTML = `
+          <h1>Error: Cannot run from file://</h1>
+          <p>
+            You must serve this folder over <strong>HTTP</strong>, not open it directly.
+            <br>
+            For example, in a terminal run:
+            <code>python3 -m http.server 8000</code>
+            <br>
+            then visit <a href="http://localhost:8000" target="_blank">
+            http://localhost:8000</a>
+          </p>
+        `;
+        return;
+      }
+
+      try {
+        console.log('⏳ Initializing CheerpJ…');
+        await cheerpjInit();
+
+        console.log('⏳ Checking remote version_manifest.json…');
+        let manifest;
+        try {
+          const resp = await fetch('https://launchermeta.mojang.com/mc/game/version_manifest.json', { mode: 'cors' });
+          console.log(`🔗 Remote manifest fetch status: ${resp.status} ${resp.statusText}`);
+          const txt = await resp.text();
+          console.log('📄 Remote manifest preview:', txt.slice(0,200).replace(/\n/g,' ') + '…');
+          if (resp.ok) {
+            manifest = JSON.parse(txt);
+          } else {
+            throw new Error(`HTTP ${resp.status}`);
+          }
+        } catch (remoteErr) {
+          console.warn('⚠️ Remote manifest unavailable, loading local version_manifest.json', remoteErr);
+          const localResp = await fetch('version_manifest.json');
+          console.log(`🔗 Local manifest fetch status: ${localResp.status} ${localResp.statusText}`);
+          const localText = await localResp.text();
+          console.log('📄 Local manifest preview:', localText.slice(0,200).replace(/\n/g,' ') + '…');
+          manifest = JSON.parse(localText);
+        }
+
+        console.log('🔍 Searching for version 1.21.5…');
+        const entry = manifest.versions.find(v => v.id === '1.21.5');
+        if (!entry) throw new Error('Version 1.21.5 not found in manifest');
+
+        console.log(`⏳ Fetching metadata from ${entry.url}…`);
+        const metaResp = await fetch(entry.url);
+        if (!metaResp.ok) throw new Error(`Failed to fetch metadata: HTTP ${metaResp.status}`);
+        const metadata = await metaResp.json();
+
+        const clientUrl = metadata.downloads.client.url;
+        console.log('📦 client.jar URL:', clientUrl);
+
+        console.log('⏳ Launching Minecraft client…');
+        const exitCode = await cheerpjRunMain(
+          'net.minecraft.client.main.Main',
+          clientUrl
+        );
+        console.log(`✅ Minecraft exited with code ${exitCode}`);
+      } catch (err) {
+        console.error('❌ Error starting Minecraft:', err);
+      }
+    }
+
+    window.addEventListener('load', startMinecraft);
+  </script>
+</head>
+<body>
+  <h1>Running Minecraft 1.21.5 via CheerpJ</h1>
+  <p>Open your browser’s developer console to watch progress and any errors.</p>
+</body>
+</html>
