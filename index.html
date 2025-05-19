@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>CheerpJ + Minecraft 1.21.5</title>
-  <!-- 1. CheerpJ 4.x loader from LeaningTech CDN -->
+  <meta charset="UTF-8">
+  <title>CheerpJ + Minecraft 1.21.5 with Manifest Verification</title>
+  <!-- CheerpJ 4.x loader -->
   <script src="https://cjrtnc.leaningtech.com/4.0/loader.js"></script>
   <script>
     async function startMinecraft() {
@@ -11,25 +11,46 @@
         console.log('⏳ Initializing CheerpJ…');
         await cheerpjInit();
 
-        // 2. Fetch Mojang’s full version manifest
-        console.log('⏳ Fetching version_manifest.json…');
-        const manifest = await fetch('https://launchermeta.mojang.com/mc/game/version_manifest.json')
-                              .then(r => r.json());  // 
+        // 1) Verify remote manifest URL
+        console.log('⏳ Checking remote version_manifest.json…');
+        let manifest;
+        try {
+          const resp = await fetch('https://launchermeta.mojang.com/mc/game/version_manifest.json', { mode: 'cors' });
+          console.log('🔗 Remote manifest fetch status:', resp.status, resp.statusText);
+          const txt = await resp.text();
+          console.log('📄 Remote manifest starts with:', txt.slice(0,200).replace(/\n/g,' '), '…');
+          // Only parse if status is 200
+          if (resp.ok) {
+            manifest = JSON.parse(txt);
+          } else {
+            throw new Error(`HTTP ${resp.status}`);
+          }
+        } catch (remoteErr) {
+          console.warn('⚠️ Remote manifest unavailable, falling back to local file:', remoteErr);
+          // 2) Fallback to local manifest
+          const localResp = await fetch('version_manifest.json');
+          console.log('🔗 Local manifest fetch status:', localResp.status, localResp.statusText);
+          const localText = await localResp.text();
+          console.log('📄 Local manifest starts with:', localText.slice(0,200).replace(/\n/g,' '), '…');
+          manifest = JSON.parse(localText);
+        }
 
-        // 3. Find the 1.21.5 entry
+        // 3) Find the 1.21.5 entry
+        console.log('🔍 Looking for version 1.21.5…');
         const entry = manifest.versions.find(v => v.id === '1.21.5');
-        if (!entry) throw new Error('Could not locate version 1.21.5 in manifest');
+        if (!entry) throw new Error('Version 1.21.5 not found in manifest');
 
-        // 4. Fetch the 1.21.5 metadata
-        console.log(`⏳ Fetching metadata for 1.21.5…`);
-        const metadata = await fetch(entry.url).then(r => r.json());  // 
+        // 4) Fetch the per-version metadata
+        console.log(`⏳ Fetching metadata from ${entry.url}…`);
+        const metaResp = await fetch(entry.url);
+        if (!metaResp.ok) throw new Error(`Failed to fetch metadata: HTTP ${metaResp.status}`);
+        const metadata = await metaResp.json();
 
-        // 5. Extract the client.jar URL
+        // 5) Extract the client.jar URL
         const clientUrl = metadata.downloads.client.url;
         console.log('📦 client.jar URL:', clientUrl);
 
-        // 6. Launch Minecraft’s main class directly from that URL
-        //    The client’s main entry point is `net.minecraft.client.main.Main`
+        // 6) Launch Minecraft’s main class
         console.log('⏳ Launching Minecraft client…');
         const exitCode = await cheerpjRunMain(
           'net.minecraft.client.main.Main',
@@ -46,8 +67,6 @@
 </head>
 <body>
   <h1>Running Minecraft 1.21.5 via CheerpJ</h1>
-  <p>
-    Check your browser’s developer console for progress logs and any errors.
-  </p>
+  <p>Open your browser’s developer console to see manifest verification, download progress, and any errors.</p>
 </body>
 </html>
