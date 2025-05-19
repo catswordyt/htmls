@@ -2,40 +2,52 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Running client.jar with CheerpJ (Debug Mode)</title>
-  <!-- 1. Load the CheerpJ 4.x loader from the LeaningTech CDN -->
+  <title>CheerpJ + Minecraft 1.21.5</title>
+  <!-- 1. CheerpJ 4.x loader from LeaningTech CDN -->
   <script src="https://cjrtnc.leaningtech.com/4.0/loader.js"></script>
   <script>
-    async function startJavaApp() {
+    async function startMinecraft() {
       try {
-        console.log('⏳ Initializing CheerpJ with debug…');
-        // Enable advanced runtime logging
-        await cheerpjInit({ enableDebug: true });
+        console.log('⏳ Initializing CheerpJ…');
+        await cheerpjInit();
 
-        console.log('✅ CheerpJ runtime ready');
+        // 2. Fetch Mojang’s full version manifest
+        console.log('⏳ Fetching version_manifest.json…');
+        const manifest = await fetch('https://launchermeta.mojang.com/mc/game/version_manifest.json')
+                              .then(r => r.json());  // 
 
-        // Optional: reserve a display canvas if your app uses Swing/AWT
-        // cheerpjCreateDisplay(800, 600);
+        // 3. Find the 1.21.5 entry
+        const entry = manifest.versions.find(v => v.id === '1.21.5');
+        if (!entry) throw new Error('Could not locate version 1.21.5 in manifest');
 
-        console.log('⏳ Launching Java application (with debug)…');
-        // Replace 'com.example.Main' with your actual fully-qualified main class
+        // 4. Fetch the 1.21.5 metadata
+        console.log(`⏳ Fetching metadata for 1.21.5…`);
+        const metadata = await fetch(entry.url).then(r => r.json());  // 
+
+        // 5. Extract the client.jar URL
+        const clientUrl = metadata.downloads.client.url;
+        console.log('📦 client.jar URL:', clientUrl);
+
+        // 6. Launch Minecraft’s main class directly from that URL
+        //    The client’s main entry point is `net.minecraft.client.main.Main`
+        console.log('⏳ Launching Minecraft client…');
         const exitCode = await cheerpjRunMain(
-          'com.example.Main',
-          'client.jar',
-          { enableDebug: true }
+          'net.minecraft.client.main.Main',
+          clientUrl
         );
-        console.log(`✅ Java application exited with code ${exitCode}`);
+        console.log(`✅ Minecraft exited with code ${exitCode}`);
       } catch (err) {
-        console.error('❌ Uncaught error during startup:', err);
+        console.error('❌ Error starting Minecraft:', err);
       }
     }
 
-    // Start everything once the page is loaded
-    window.addEventListener('load', startJavaApp);
+    window.addEventListener('load', startMinecraft);
   </script>
 </head>
 <body>
-  <h1>Running client.jar via CheerpJ (Debug Mode)</h1>
-  <p>Open your browser’s developer console to see detailed CheerpJ and Java logs.</p>
+  <h1>Running Minecraft 1.21.5 via CheerpJ</h1>
+  <p>
+    Check your browser’s developer console for progress logs and any errors.
+  </p>
 </body>
 </html>
